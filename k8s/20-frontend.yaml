@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: shopflow
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: frontend }
+  template:
+    metadata:
+      labels: { app: frontend }
+    spec:
+      containers:
+        - name: nginx
+          image: __REGISTRY__/shopflow-frontend:__TAG__
+          ports: [{ containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: shopflow
+spec:
+  type: LoadBalancer        # AWS creates a public load balancer for us
+  selector: { app: frontend }
+  ports: [{ port: 80, targetPort: 80 }]

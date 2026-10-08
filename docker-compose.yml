@@ -1,0 +1,17 @@
+# Local rehearsal: same shape as production (nginx -> backend -> postgres)
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: postgres, POSTGRES_PASSWORD: postgres, POSTGRES_DB: shopflow }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/shopflow
+    depends_on: [db]
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
+volumes:
+  pgdata:
